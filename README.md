@@ -2,17 +2,25 @@
 
 .
 ├── 1_infrastructure/
+
 │   ├── networking/
+
 │   ├── security/
+
 │   ├── compute/
+
 │   ├── load-balancing/
+
 │   └── variables.tf
 │
 ├── application/
+
 │   ├── Dockerfile
+
 │   └── source-code/
 │
 ├── .gitignore
+
 └── README.md
 
 Deployment Lifecycle (Conceptual)
