@@ -1,0 +1,81 @@
+pipeline {
+    agent any
+
+    environment {
+        AWS_REGION = "us-east-1"                       // Update your AWS region
+        ECR_REPO_URI = "463646775279.dkr.ecr.us-east-1.amazonaws.com/javadevops1" // Update with your ECR repo
+        IMAGE_TAG = "${BUILD_NUMBER}"
+        ECS_CLUSTER = "devops-assessment-ecs-cluster" // Update your ECS cluster name
+        ECS_SERVICE = "java-app"                      // Update your ECS service name
+    }
+
+    stages {
+
+        stage('Checkout Source Code') {
+            steps {
+                git branch: 'main',
+                    credentialsId: 'git_creds',       // Your GitHub credentials ID in Jenkins
+                    url: 'https://github.com/riteshbehal/repo-app-hrs.git'
+            }
+        }
+
+        stage('Build Java Application') {
+            steps {
+                sh '''
+                echo "Building Java application..."
+                javac 2_automation/java-app/App.java   # Adjust path to your Java files
+                '''
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                sh '''
+                echo "Building Docker image..."
+                docker build -t $ECR_REPO_URI:$IMAGE_TAG 2_automation/java-app
+                '''
+            }
+        }
+
+        stage('Login to Amazon ECR') {
+            steps {
+                sh '''
+                echo "Logging in to Amazon ECR..."
+                aws ecr get-login-password --region $AWS_REGION \
+                | docker login --username AWS --password-stdin $ECR_REPO_URI
+                '''
+            }
+        }
+
+        stage('Push Image to ECR') {
+            steps {
+                sh '''
+                echo "Pushing Docker image to ECR..."
+                docker push $ECR_REPO_URI:$IMAGE_TAG
+                '''
+            }
+        }
+
+        stage('Deploy to Amazon ECS') {
+            steps {
+                sh '''
+                echo "Deploying new version to ECS..."
+                aws ecs update-service \
+                  --cluster $ECS_CLUSTER \
+                  --service $ECS_SERVICE \
+                  --force-new-deployment \
+                  --region $AWS_REGION
+                '''
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "CI/CD Pipeline completed successfully!"
+        }
+        failure {
+            echo "CI/CD Pipeline failed. Please check logs."
+        }
+    }
+}
