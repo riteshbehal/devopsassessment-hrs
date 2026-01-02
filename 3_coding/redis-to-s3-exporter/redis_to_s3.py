@@ -32,8 +32,6 @@ def main():
         Body=json.dumps(payload, indent=2),
         ContentType="application/json"
     )
-
-    print("✅ Redis data successfully uploaded to S3")
-
 if __name__ == "__main__":
     main()
+
