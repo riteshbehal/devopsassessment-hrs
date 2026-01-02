@@ -34,6 +34,6 @@ resource "aws_ecs_service" "nginx_app" {
     aws_subnet.public[0].id,
     aws_subnet.public[1].id]
     security_groups = [aws_security_group.ecs_sg.id]
-    assign_public_ip = true
+    assign_public_ip = false
   }
 }
